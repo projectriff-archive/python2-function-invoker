@@ -1,0 +1,1 @@
+= Python2 Function Invoker image:https://ci.projectriff.io/api/v1/teams/main/pipelines/riff/jobs/build-python2-function-invoker-container/badge[Python2 Invoker Status, link=https://ci.projectriff.io/teams/main/pipelines/riff/jobs/build-python2-function-invoker-containe/builds/latest]
