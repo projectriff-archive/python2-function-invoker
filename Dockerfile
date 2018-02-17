@@ -1,4 +1,20 @@
-FROM python:2.7.11-slim
+FROM python:2.7-slim as build_proto
+RUN  apt-get update \
+  && apt-get install -y wget \
+  && rm -rf /var/lib/apt/lists/*
+
+ADD  grpcio-tools.txt /
+RUN  ["pip","install","-r","grpcio-tools.txt"]
+
+RUN ["wget", "https://raw.githubusercontent.com/projectriff/function-proto/master/function.proto", "-P", "proto"]
+
+# Generate the protobufs
+RUN ["mkdir", "./grpc_function"]
+RUN ["python", "-m", "grpc_tools.protoc","-I./proto","--python_out=./grpc_function", "--grpc_python_out=./grpc_function","./proto/function.proto"]
+
+FROM python:2.7-slim
 COPY src/main/python/* /
-ENTRYPOINT ["/bin/bash", "-c", "./runner.sh"]
+COPY --from=build_proto ./grpc_function .
+RUN  ["pip","install","-r","requirements.txt"]
+ENTRYPOINT ["python","./funcrunner.py"]
 

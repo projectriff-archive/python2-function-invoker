@@ -16,26 +16,19 @@ Copyright 2017 the original author or authors.
 '''
 __author__ = 'David Turanski'
 
+import sys
+import os
+import zipfile
 import importlib
 import ntpath
-import os
 import os.path
-import sys
-import traceback
-import zipfile
-from shutil import copyfile
 from urlparse import urlparse
+from shutil import copyfile
+import grpc_server
 
 
 def run_function(func):
-    while True:
-        try:
-            data = raw_input()
-            func(data)
-        except KeyboardInterrupt:
-            exit(0)
-        except Exception:
-            traceback.print_exc(file=sys.stdout)
+    grpc_server.run(func, os.environ.get("GRPC_PORT", "10382"))
 
 
 def install_function():
@@ -78,7 +71,7 @@ def install_function():
         return getattr(mod, func_name)
 
     except KeyError:
-        sys.stderr.write("required environment variable FUNCTION_URI is not defined\n")
+        sys.stderr.write("required environment variable FUNCTION_URI is missing\n")
         exit(1)
 
 
