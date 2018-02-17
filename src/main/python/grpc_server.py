@@ -23,8 +23,8 @@ sys.path.insert(0, os.path.abspath('.'))
 
 import grpc
 import time
-import grpc_function.function_pb2_grpc as function
-import grpc_function.function_pb2 as message
+import function_pb2_grpc as function
+import function_pb2 as message
 
 
 def run(func,port):
