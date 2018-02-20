@@ -35,14 +35,14 @@ def install_function():
     try:
         function_uri = os.environ['FUNCTION_URI']
         url = urlparse(function_uri)
-        if (url.scheme == 'file'):
+        if url.scheme == 'file':
             if not os.path.isfile(url.path):
                 sys.stderr.write("file %s does not exist\n" % url.path)
                 exit(1)
 
             filename, extension = os.path.splitext(url.path)
 
-            if (extension == '.zip'):
+            if extension == '.zip':
                 zip_ref = zipfile.ZipFile(url.path, 'r')
                 zip_ref.extractall('.')
                 zip_ref.close()
@@ -75,5 +75,6 @@ def install_function():
         exit(1)
 
 
-function = install_function()
-run_function(function)
+if __name__ == '__main__':
+    function = install_function()
+    run_function(function)

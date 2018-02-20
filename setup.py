@@ -12,10 +12,6 @@ class GrpcCommand(distutils.cmd.Command):
 
     def initialize_options(self):
         self.clean('proto')
-        self.clean('grpc_function')
-        file = open("grpc_function/__init__.py","w")
-        file.close()
-
     def clean(self,dir):
         if not os.path.exists(dir):
             os.mkdir(dir, 0777)
@@ -41,7 +37,7 @@ class GrpcCommand(distutils.cmd.Command):
             level=distutils.log.INFO)
         subprocess.check_call(command)
 
-        command = ["python", "-m", "grpc_tools.protoc", "-I./proto", "--python_out=./grpc_function", "--grpc_python_out=./grpc_function",
+        command = ["python", "-m", "grpc_tools.protoc", "-I./proto", "--python_out=invoker", "--grpc_python_out=invoker",
                    "./proto/function.proto"]
         self.announce(
             'Running command: %s' % str(command),
