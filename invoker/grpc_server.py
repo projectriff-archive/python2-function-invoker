@@ -25,9 +25,10 @@ import grpc
 import time
 import function_pb2_grpc as function
 import function_pb2 as message
+import json
 
 
-def run(func,port):
+def run(func, port):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     function.add_MessageFunctionServicer_to_server(MessageFunctionServicer(func), server)
     server.add_insecure_port('%s:%s' % ('[::]', os.environ.get("GRPC_PORT", "10382")))
@@ -37,16 +38,41 @@ def run(func,port):
     while True:
         time.sleep(10)
 
+
 class MessageFunctionServicer(function.MessageFunctionServicer):
 
-    def __init__(self,func):
+    def __init__(self, func):
         self.func = func
 
     def Call(self, request_iterator, context):
         for request in request_iterator:
+
+            if 'application/json' in request.headers['Content-Type'].values:
+                arg = byteify(json.loads(request.payload))
+            elif 'text/plain' in request.headers['Content-Type'].values:
+                arg = request.payload
+
+            result = self.func(arg)
+
             reply = message.Message()
-            reply.payload = self.func(request.payload)
+            if type(result) is dict:
+                reply.payload = json.dumps(result)
+            else:
+                reply.payload = result
+
+
+
             reply.headers['correlationId'].values[:] = request.headers['correlationId'].values[:]
             yield reply
 
 
+def byteify(input):
+    if isinstance(input, dict):
+        return {byteify(key): byteify(value)
+                for key, value in input.iteritems()}
+    elif isinstance(input, list):
+        return [byteify(element) for element in input]
+    elif isinstance(input, unicode):
+        return input.encode('utf-8')
+    else:
+        return input

@@ -13,4 +13,15 @@ Copyright 2018 the original author or authors.
    See the License for the specific language governing permissions and
    limitations under the License.
 '''
-__author__ = 'David Turanski'  
+__author__ = 'David Turanski'
+
+
+def concat(vals):
+    '''
+    :param vals: expects a dict
+    :return: a singleton dict whose value is concatenated keys and values
+    '''
+    result = ''
+    for k, v in vals.iteritems():
+        result = result + k + v
+    return {'result': result}

@@ -36,6 +36,8 @@ def install_function():
         function_uri = os.environ['FUNCTION_URI']
         url = urlparse(function_uri)
         if url.scheme == 'file':
+            print(os.getcwd())
+            print("url path %s" % url.path)
             if not os.path.isfile(url.path):
                 sys.stderr.write("file %s does not exist\n" % url.path)
                 exit(1)
