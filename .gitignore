@@ -5,3 +5,5 @@ proto/
 .eggs/
 UNKNOWN.egg-info/
 *.pyc
+tests/functions/*.yaml
+tests/functions/Dockerfile
