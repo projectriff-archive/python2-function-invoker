@@ -29,7 +29,7 @@ import json
 
 
 def run(func, port):
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
     function.add_MessageFunctionServicer_to_server(MessageFunctionServicer(func), server)
     server.add_insecure_port('%s:%s' % ('[::]', os.environ.get("GRPC_PORT", "10382")))
 
@@ -46,33 +46,44 @@ class MessageFunctionServicer(function.MessageFunctionServicer):
 
     def Call(self, request_iterator, context):
         for request in request_iterator:
-
-            if 'application/json' in request.headers['Content-Type'].values:
-                arg = byteify(json.loads(request.payload))
-            elif 'text/plain' in request.headers['Content-Type'].values:
-                arg = request.payload
-
-            result = self.func(arg)
+            result = self.func(self.convertRequestPayload(request))
 
             reply = message.Message()
-            if type(result) is dict:
-                reply.payload = json.dumps(result)
-            else:
-                reply.payload = result
-
-
+            reply.payload = self.convertReplyPayload(request.headers['Accept'].values, result)
 
             reply.headers['correlationId'].values[:] = request.headers['correlationId'].values[:]
             yield reply
 
+    def convertRequestPayload(self, request):
+        if 'application/json' in request.headers['Content-Type'].values:
+            return byteify(json.loads(request.payload))
+        elif 'text/plain' in request.headers['Content-Type'].values:
+            return request.payload
 
-def byteify(input):
-    if isinstance(input, dict):
+    def convertReplyPayload(self, accepts, val):
+
+        if len(accepts) == 0 or 'text/plain' in accepts:
+            if type(val) is dict:
+                return json.dumps(val)
+            else:
+                return str(val)
+
+        if 'application/json' in accepts:
+            if type(val) is dict:
+                return json.dumps(val)
+            else:
+                raise RuntimeError('Cannot convert type %s to JSON' % type(val))
+        else:
+            raise RuntimeError('Unsupported response type %s' % accepts)
+
+
+def byteify(val):
+    if isinstance(val, dict):
         return {byteify(key): byteify(value)
-                for key, value in input.iteritems()}
-    elif isinstance(input, list):
-        return [byteify(element) for element in input]
-    elif isinstance(input, unicode):
-        return input.encode('utf-8')
+                for key, value in val.iteritems()}
+    elif isinstance(val, list):
+        return [byteify(element) for element in val]
+    elif isinstance(val, unicode):
+        return val.encode('utf-8')
     else:
-        return input
+        return val

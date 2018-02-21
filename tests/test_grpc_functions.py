@@ -25,7 +25,6 @@ import time
 from invoker import function_pb2_grpc as function
 from invoker import function_pb2 as message
 
-PORT = 10382
 # TODO: Make this portable
 PYTHON2 = "~/miniconda2/bin/python"
 
@@ -44,10 +43,11 @@ class GrpcFunctionTest(unittest.TestCase):
         print("killing %s" % self.process.pid)
         self.process.kill()
 
-
     def test_upper(self):
+        port = find_free_port()
         env = {
             'PYTHONPATH': '%s/functions:$PYTHONPATH' % os.getcwd(),
+            'GRPC_PORT': str(port),
             'FUNCTION_URI': 'file://%s/functions/upper.py?handler=handle' % os.getcwd()
         }
 
@@ -59,7 +59,7 @@ class GrpcFunctionTest(unittest.TestCase):
                                         )
         time.sleep(0.5)
 
-        channel = grpc.insecure_channel('localhost:%s' % PORT)
+        channel = grpc.insecure_channel('localhost:%s' % port)
         self.stub = function.MessageFunctionStub(channel)
 
         def generate_messages():
@@ -87,8 +87,10 @@ class GrpcFunctionTest(unittest.TestCase):
         self.assertEquals(0, len(expected))
 
     def test_concat(self):
+        port = find_free_port()
         env = {
             'PYTHONPATH': '%s/functions:$PYTHONPATH' % os.getcwd(),
+            'GRPC_PORT': str(port),
             'FUNCTION_URI': 'file://%s/functions/concat.py?handler=concat' % os.getcwd()
         }
 
@@ -98,9 +100,9 @@ class GrpcFunctionTest(unittest.TestCase):
                                         env=env,
                                         preexec_fn=os.setsid,
                                         )
-        time.sleep(1)
+        time.sleep(0.5)
 
-        channel = grpc.insecure_channel('localhost:%s' % PORT)
+        channel = grpc.insecure_channel('localhost:%s' % port)
         self.stub = function.MessageFunctionStub(channel)
 
         def generate_messages():
@@ -118,4 +120,127 @@ class GrpcFunctionTest(unittest.TestCase):
         responses = self.stub.Call(generate_messages())
 
         for response in responses:
-           self.assertEquals('{"result": "foobarhelloworld"}',response.payload)
+            self.assertEquals('{"result": "foobarhelloworld"}', response.payload)
+
+    def test_accepts_application_json(self):
+        port = find_free_port()
+        env = {
+            'PYTHONPATH': '%s/functions:$PYTHONPATH' % os.getcwd(),
+            'GRPC_PORT': str(port),
+            'FUNCTION_URI': 'file://%s/functions/concat.py?handler=concat' % os.getcwd()
+        }
+
+        self.process = subprocess.Popen(self.command,
+                                        cwd=self.workingdir,
+                                        shell=True,
+                                        env=env,
+                                        preexec_fn=os.setsid,
+                                        )
+        time.sleep(0.5)
+
+        channel = grpc.insecure_channel('localhost:%d' % port)
+        self.stub = function.MessageFunctionStub(channel)
+
+        def generate_messages():
+            headers = {
+                'Content-Type': message.Message.HeaderValue(values=['application/json']),
+                'Accept': message.Message.HeaderValue(values=['application/json']),
+                'correlationId': message.Message.HeaderValue(values=[str(uuid.uuid4())])
+            }
+
+            messages = [
+                message.Message(payload='{"foo":"bar","hello":"world"}', headers=headers),
+            ]
+            for msg in messages:
+                yield msg
+
+        responses = self.stub.Call(generate_messages())
+
+        for response in responses:
+            self.assertEquals('{"result": "foobarhelloworld"}', response.payload)
+
+    def test_accepts_text_plain(self):
+        port = find_free_port()
+        env = {
+            'PYTHONPATH': '%s/functions:$PYTHONPATH' % os.getcwd(),
+             'GRPC_PORT': str(port),
+            'FUNCTION_URI': 'file://%s/functions/concat.py?handler=concat' % os.getcwd()
+        }
+
+        self.process = subprocess.Popen(self.command,
+                                        cwd=self.workingdir,
+                                        shell=True,
+                                        env=env,
+                                        preexec_fn=os.setsid,
+                                        )
+        time.sleep(0.5)
+
+        channel = grpc.insecure_channel('localhost:%d' % port)
+        self.stub = function.MessageFunctionStub(channel)
+
+        def generate_messages():
+            headers = {
+                'Content-Type': message.Message.HeaderValue(values=['application/json']),
+                'Accept': message.Message.HeaderValue(values=['text/plain']),
+                'correlationId': message.Message.HeaderValue(values=[str(uuid.uuid4())])
+            }
+
+            messages = [
+                message.Message(payload='{"foo":"bar","hello":"world"}', headers=headers),
+            ]
+            for msg in messages:
+                yield msg
+
+        responses = self.stub.Call(generate_messages())
+
+        for response in responses:
+            self.assertEquals('{"result": "foobarhelloworld"}', response.payload)
+
+    def test_accepts_not_supported(self):
+        port = find_free_port()
+        env = {
+            'PYTHONPATH': '%s/functions:$PYTHONPATH' % os.getcwd(),
+            'GRPC_PORT': str(port),
+            'FUNCTION_URI': 'file://%s/functions/concat.py?handler=concat' % os.getcwd()
+        }
+
+        self.process = subprocess.Popen(self.command,
+                                        cwd=self.workingdir,
+                                        shell=True,
+                                        env=env,
+                                        preexec_fn=os.setsid,
+                                        )
+        time.sleep(0.5)
+
+        channel = grpc.insecure_channel('localhost:%s' % port)
+        self.stub = function.MessageFunctionStub(channel)
+
+        def generate_messages():
+            headers = {
+                'Content-Type': message.Message.HeaderValue(values=['application/json']),
+                'Accept': message.Message.HeaderValue(values=['application/xml']),
+                'correlationId': message.Message.HeaderValue(values=[str(uuid.uuid4())])
+            }
+
+            messages = [
+                message.Message(payload='{"foo":"bar","hello":"world"}', headers=headers),
+            ]
+            for msg in messages:
+                yield msg
+
+        try:
+            responses = self.stub.Call(generate_messages())
+            self.assertEquals(grpc._channel._Rendezvous, type(responses))
+            #TODO: Investigate error handling
+        except RuntimeError:
+            pass
+
+
+
+import socket
+from contextlib import closing
+
+def find_free_port():
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+        s.bind(('', 0))
+        return s.getsockname()[1]
