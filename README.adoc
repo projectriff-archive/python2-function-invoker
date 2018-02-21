@@ -1,1 +1,23 @@
 = Python2 Function Invoker image:https://ci.projectriff.io/api/v1/teams/main/pipelines/riff/jobs/build-python2-function-invoker-container/badge[Python2 Invoker Status, link=https://ci.projectriff.io/teams/main/pipelines/riff/jobs/build-python2-function-invoker-containe/builds/latest]
+
+== Running Tests
+
+Use a virtual environment for python 2.7
+
+```
+$pip install grpcio==1.8.4
+$pip install grpcio-tools==1.8.4
+$./setup.py test
+```
+
+== Update grpc modules
+
+```
+$./setup.py grpc
+```
+
+== Build the docker image
+```
+$./build.sh
+```
+

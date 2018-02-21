@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 import distutils.cmd
 import distutils.log
 import setuptools
@@ -47,7 +49,8 @@ class GrpcCommand(distutils.cmd.Command):
 
 
 setuptools.setup(
-    install_requires=['grpcio_tools','protobuf==3.4.0'],
+    test_suite="tests",
+    tests_require=['grpcio==1.8.4','grpcio_tools==1.8.4','protobuf'],
     extras_require={
         ':python_version == "2.7"': ['futures']
     },

@@ -28,12 +28,14 @@ from invoker import function_pb2 as message
 # TODO: Make this portable
 PYTHON2 = "~/miniconda2/bin/python"
 
-
 class GrpcFunctionTest(unittest.TestCase):
+    """
+    Assumes os.getcwd() is the project base directory
+    """
     @classmethod
     def setUpClass(cls):
         # TODO: Make this portable
-        cls.workingdir = os.path.abspath("../invoker")
+        cls.workingdir = os.path.abspath("./invoker")
         cls.command = "%s funcrunner.py" % PYTHON2
 
     def setUp(self):
@@ -46,9 +48,9 @@ class GrpcFunctionTest(unittest.TestCase):
     def test_upper(self):
         port = find_free_port()
         env = {
-            'PYTHONPATH': '%s/functions:$PYTHONPATH' % os.getcwd(),
+            'PYTHONPATH': '%s/tests/functions:$PYTHONPATH' % os.getcwd(),
             'GRPC_PORT': str(port),
-            'FUNCTION_URI': 'file://%s/functions/upper.py?handler=handle' % os.getcwd()
+            'FUNCTION_URI': 'file://%s/tests/functions/upper.py?handler=handle' % os.getcwd()
         }
 
         self.process = subprocess.Popen(self.command,
@@ -89,9 +91,9 @@ class GrpcFunctionTest(unittest.TestCase):
     def test_concat(self):
         port = find_free_port()
         env = {
-            'PYTHONPATH': '%s/functions:$PYTHONPATH' % os.getcwd(),
+            'PYTHONPATH': '%s/tests/functions:$PYTHONPATH' % os.getcwd(),
             'GRPC_PORT': str(port),
-            'FUNCTION_URI': 'file://%s/functions/concat.py?handler=concat' % os.getcwd()
+            'FUNCTION_URI': 'file://%s/tests/functions/concat.py?handler=concat' % os.getcwd()
         }
 
         self.process = subprocess.Popen(self.command,
@@ -125,9 +127,9 @@ class GrpcFunctionTest(unittest.TestCase):
     def test_accepts_application_json(self):
         port = find_free_port()
         env = {
-            'PYTHONPATH': '%s/functions:$PYTHONPATH' % os.getcwd(),
+            'PYTHONPATH': '%s/tests/functions:$PYTHONPATH' % os.getcwd(),
             'GRPC_PORT': str(port),
-            'FUNCTION_URI': 'file://%s/functions/concat.py?handler=concat' % os.getcwd()
+            'FUNCTION_URI': 'file://%s/tests/functions/concat.py?handler=concat' % os.getcwd()
         }
 
         self.process = subprocess.Popen(self.command,
@@ -162,9 +164,9 @@ class GrpcFunctionTest(unittest.TestCase):
     def test_accepts_text_plain(self):
         port = find_free_port()
         env = {
-            'PYTHONPATH': '%s/functions:$PYTHONPATH' % os.getcwd(),
+            'PYTHONPATH': '%s/tests/functions:$PYTHONPATH' % os.getcwd(),
              'GRPC_PORT': str(port),
-            'FUNCTION_URI': 'file://%s/functions/concat.py?handler=concat' % os.getcwd()
+            'FUNCTION_URI': 'file://%s/tests/functions/concat.py?handler=concat' % os.getcwd()
         }
 
         self.process = subprocess.Popen(self.command,
@@ -199,9 +201,9 @@ class GrpcFunctionTest(unittest.TestCase):
     def test_accepts_not_supported(self):
         port = find_free_port()
         env = {
-            'PYTHONPATH': '%s/functions:$PYTHONPATH' % os.getcwd(),
+            'PYTHONPATH': '%s/tests/functions:$PYTHONPATH' % os.getcwd(),
             'GRPC_PORT': str(port),
-            'FUNCTION_URI': 'file://%s/functions/concat.py?handler=concat' % os.getcwd()
+            'FUNCTION_URI': 'file://%s/tests/functions/concat.py?handler=concat' % os.getcwd()
         }
 
         self.process = subprocess.Popen(self.command,
