@@ -36,7 +36,7 @@ class GrpcFunctionTest(unittest.TestCase):
     def setUpClass(cls):
         # TODO: Make this portable
         cls.workingdir = os.path.abspath("./invoker")
-        cls.command = "%s funcrunner.py" % PYTHON2
+        cls.command = "%s function_invoker.py" % PYTHON2
 
     def setUp(self):
         pass

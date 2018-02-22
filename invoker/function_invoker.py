@@ -27,7 +27,7 @@ from shutil import copyfile
 import grpc_server
 
 
-def run_function(func):
+def invoke_function(func):
     grpc_server.run(func, os.environ.get("GRPC_PORT", "10382"))
 
 
@@ -79,4 +79,4 @@ def install_function():
 
 if __name__ == '__main__':
     function = install_function()
-    run_function(function)
+    invoke_function(function)

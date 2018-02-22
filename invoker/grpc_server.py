@@ -56,13 +56,13 @@ class MessageFunctionServicer(function.MessageFunctionServicer):
 
     def convertRequestPayload(self, request):
         if 'application/json' in request.headers['Content-Type'].values:
-            return byteify(json.loads(request.payload))
-        elif 'text/plain' in request.headers['Content-Type'].values:
+            return self.byteify(json.loads(request.payload))
+        else:
             return request.payload
 
     def convertReplyPayload(self, accepts, val):
 
-        if len(accepts) == 0 or 'text/plain' in accepts:
+        if len(accepts) == 0 or 'text/plain' in accepts or "*/*" in accepts:
             if type(val) is dict:
                 return json.dumps(val)
             else:
@@ -77,13 +77,13 @@ class MessageFunctionServicer(function.MessageFunctionServicer):
             raise RuntimeError('Unsupported response type %s' % accepts)
 
 
-def byteify(val):
-    if isinstance(val, dict):
-        return {byteify(key): byteify(value)
-                for key, value in val.iteritems()}
-    elif isinstance(val, list):
-        return [byteify(element) for element in val]
-    elif isinstance(val, unicode):
-        return val.encode('utf-8')
-    else:
-        return val
+    def byteify(self, val):
+        if isinstance(val, dict):
+            return {self.byteify(key): self.byteify(value)
+                    for key, value in val.iteritems()}
+        elif isinstance(val, list):
+            return [self.byteify(element) for element in val]
+        elif isinstance(val, unicode):
+            return val.encode('utf-8')
+        else:
+            return val

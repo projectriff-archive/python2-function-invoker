@@ -16,5 +16,5 @@ FROM python:2.7-slim
 COPY invoker/* /
 COPY --from=build_proto ./grpc_modules .
 RUN  ["pip","install","-r","requirements.txt"]
-ENTRYPOINT ["python","./funcrunner.py"]
+ENTRYPOINT ["python","./function_invoker.py"]
 
