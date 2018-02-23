@@ -28,13 +28,14 @@ from invoker import function_pb2 as message
 # TODO: Make this portable
 PYTHON2 = "~/miniconda2/bin/python"
 
+
 class GrpcFunctionTest(unittest.TestCase):
     """
     Assumes os.getcwd() is the project base directory
     """
+
     @classmethod
     def setUpClass(cls):
-        # TODO: Make this portable
         cls.workingdir = os.path.abspath("./invoker")
         cls.command = "%s function_invoker.py" % PYTHON2
 
@@ -42,7 +43,6 @@ class GrpcFunctionTest(unittest.TestCase):
         pass
 
     def tearDown(self):
-        print("killing %s" % self.process.pid)
         self.process.kill()
 
     def test_upper(self):
@@ -59,9 +59,10 @@ class GrpcFunctionTest(unittest.TestCase):
                                         env=env,
                                         preexec_fn=os.setsid,
                                         )
-        time.sleep(0.5)
 
         channel = grpc.insecure_channel('localhost:%s' % port)
+        wait_until_channel_ready(channel)
+
         self.stub = function.MessageFunctionStub(channel)
 
         def generate_messages():
@@ -78,6 +79,7 @@ class GrpcFunctionTest(unittest.TestCase):
             ]
             for msg in messages:
                 yield msg
+
 
         responses = self.stub.Call(generate_messages())
         expected = ['HELLO', 'WORLD', 'FOO', 'BAR']
@@ -102,9 +104,9 @@ class GrpcFunctionTest(unittest.TestCase):
                                         env=env,
                                         preexec_fn=os.setsid,
                                         )
-        time.sleep(0.5)
 
         channel = grpc.insecure_channel('localhost:%s' % port)
+        wait_until_channel_ready(channel)
         self.stub = function.MessageFunctionStub(channel)
 
         def generate_messages():
@@ -138,9 +140,10 @@ class GrpcFunctionTest(unittest.TestCase):
                                         env=env,
                                         preexec_fn=os.setsid,
                                         )
-        time.sleep(0.5)
 
         channel = grpc.insecure_channel('localhost:%d' % port)
+        wait_until_channel_ready(channel)
+
         self.stub = function.MessageFunctionStub(channel)
 
         def generate_messages():
@@ -165,7 +168,7 @@ class GrpcFunctionTest(unittest.TestCase):
         port = find_free_port()
         env = {
             'PYTHONPATH': '%s/tests/functions:$PYTHONPATH' % os.getcwd(),
-             'GRPC_PORT': str(port),
+            'GRPC_PORT': str(port),
             'FUNCTION_URI': 'file://%s/tests/functions/concat.py?handler=concat' % os.getcwd()
         }
 
@@ -175,9 +178,9 @@ class GrpcFunctionTest(unittest.TestCase):
                                         env=env,
                                         preexec_fn=os.setsid,
                                         )
-        time.sleep(0.5)
 
         channel = grpc.insecure_channel('localhost:%d' % port)
+        wait_until_channel_ready(channel)
         self.stub = function.MessageFunctionStub(channel)
 
         def generate_messages():
@@ -212,9 +215,10 @@ class GrpcFunctionTest(unittest.TestCase):
                                         env=env,
                                         preexec_fn=os.setsid,
                                         )
-        time.sleep(0.5)
 
         channel = grpc.insecure_channel('localhost:%s' % port)
+        wait_until_channel_ready(channel)
+
         self.stub = function.MessageFunctionStub(channel)
 
         def generate_messages():
@@ -233,16 +237,28 @@ class GrpcFunctionTest(unittest.TestCase):
         try:
             responses = self.stub.Call(generate_messages())
             self.assertEquals(grpc._channel._Rendezvous, type(responses))
-            #TODO: Investigate error handling
+            # TODO: Investigate error handling
+            # https://github.com/projectriff/python2-function-invoker/issues/5
         except RuntimeError:
             pass
-
 
 
 import socket
 from contextlib import closing
 
+
 def find_free_port():
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
         s.bind(('', 0))
         return s.getsockname()[1]
+
+
+def wait_until_channel_ready(channel):
+    max_tries = 100
+    ready = grpc.channel_ready_future(channel)
+    tries = 0
+    while not ready.done():
+        time.sleep(0.1)
+        tries = tries + 1
+        if tries == max_tries:
+            raise RuntimeError("cannot connect to gRPC server")

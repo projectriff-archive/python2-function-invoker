@@ -15,13 +15,15 @@ Copyright 2018 the original author or authors.
 '''
 __author__ = 'David Turanski'
 
+import collections
 
 def concat(vals):
     '''
     :param vals: expects a dict
     :return: a singleton dict whose value is concatenated keys and values
     '''
+    od = collections.OrderedDict(sorted(vals.iteritems()))
     result = ''
-    for k, v in vals.iteritems():
+    for k, v in od.iteritems():
         result = result + k + v
     return {'result': result}

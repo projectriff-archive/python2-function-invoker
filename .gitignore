@@ -1,5 +1,4 @@
 grpc_modules/
-proto/
 .idea/
 .cache/
 .eggs/
