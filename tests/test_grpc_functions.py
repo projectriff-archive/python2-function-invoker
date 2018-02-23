@@ -15,6 +15,9 @@ Copyright 2018 the original author or authors.
 '''
 __author__ = 'David Turanski'
 
+import sys
+if sys.version_info[0] != 2:
+    raise RuntimeError("Requires Python 2")
 import grpc
 import unittest
 import subprocess
@@ -25,8 +28,7 @@ import time
 from invoker import function_pb2_grpc as function
 from invoker import function_pb2 as message
 
-# TODO: Make this portable
-PYTHON2 = "~/miniconda2/bin/python"
+PYTHON = sys.executable
 
 
 class GrpcFunctionTest(unittest.TestCase):
@@ -37,7 +39,7 @@ class GrpcFunctionTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.workingdir = os.path.abspath("./invoker")
-        cls.command = "%s function_invoker.py" % PYTHON2
+        cls.command = "%s function_invoker.py" % PYTHON
 
     def setUp(self):
         pass

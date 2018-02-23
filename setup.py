@@ -50,10 +50,7 @@ class GrpcCommand(distutils.cmd.Command):
 
 setuptools.setup(
     test_suite="tests",
-    tests_require=['grpcio==1.8.4','grpcio_tools==1.8.4','protobuf'],
-    extras_require={
-        ':python_version == "2.7"': ['futures']
-    },
+    tests_require=['grpcio==1.8.4','grpcio_tools==1.8.4','protobuf','futures'],
     cmdclass={
         'grpc': GrpcCommand,
     },
