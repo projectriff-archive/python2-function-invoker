@@ -1,4 +1,5 @@
-FROM python:2.7.11-slim
-COPY src/main/python/* /
-ENTRYPOINT ["/bin/bash", "-c", "./runner.sh"]
+FROM python:2.7-slim
+COPY invoker/* /
+RUN  ["pip","install","-r","requirements.txt"]
+ENTRYPOINT ["python","./function_invoker.py"]
 
