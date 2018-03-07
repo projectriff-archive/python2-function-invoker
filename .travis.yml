@@ -1,0 +1,17 @@
+language: python
+python:
+  - "2.7"
+install: true
+matrix:
+  include:
+    - stage: test
+      script: ./run_tests.sh
+    - stage: publish
+      sudo: required
+      services:
+      - docker
+      script: ./.travis.docker-push.sh
+stages:
+  - test
+  - name: publish
+    if: branch = master AND type = push
