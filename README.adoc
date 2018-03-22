@@ -7,6 +7,13 @@ For messages containing `Content-Type:application/json`, the bytes payload is co
 
 Supported Python Version: 2.7.x
 
+== Install as a riff invoker
+
+[source, bash]
+----
+kubectl apply -f python2-invoker.yaml
+----
+
 == Running Tests
 
 This script will install a virtual environment for python 2.7 and run the tests.
