@@ -4,7 +4,7 @@ kind: Invoker
 metadata:
   name: python2
 spec:
-  version: 0.0.6
+  version: 0.0.7-snapshot
   matchers:
   - "*.py"
   handler:
