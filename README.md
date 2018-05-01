@@ -2,6 +2,10 @@
 
 ## About
 
+<aside class="warning">
+The Python 2 function invoker is deprecated. Please use the [Python 3 function invoker](https://github.com/projectriff/python3-function-invoker) instead.
+</aside>
+
 The Python 2 function invoker, as the name implies, supports functions written in Python 2.  The invoker supports function arguments of type `str` or `dict`, determined by the message's `Content-Type` header.
 For messages containing `Content-Type:application/json`, the bytes payload is converted to a dict. Reflection is used to convert the return value. Currently only UTF-8 encoding is supported.
 
